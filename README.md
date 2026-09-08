@@ -6,6 +6,8 @@ Basit, bağımlılıksız ve çok dilli Battlefield 1 RSP yönetim paneli.
 
 [Türkçe](README.md) · [English](README.en.md) · [Русский](README.ru.md) · [中文](README.zh-CN.md)
 
+### [Canlı demoyu aç](https://cerserbf1.bonto.run/)
+
 ![Node.js 20+](https://img.shields.io/badge/Node.js-20%2B-339933?logo=nodedotjs&logoColor=white)
 ![Dependencies](https://img.shields.io/badge/runtime_dependencies-0-ff9f1c)
 ![Languages](https://img.shields.io/badge/languages-TR%20%7C%20EN%20%7C%20RU%20%7C%20ZH-388bfd)
