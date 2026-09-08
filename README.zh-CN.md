@@ -60,7 +60,11 @@ SID 和 REMID 是敏感的会话凭据，可能提供对 EA 账户的访问权�
 
 ## 发布到互联网
 
-应用仅监听 `127.0.0.1`。请将其部署在提供 HTTPS 的反向代理后，并保留 `Host` 和 `X-Forwarded-Proto` 请求头。切勿通过未加密的 HTTP 发布需要输入 SID/REMID 的面板。
+应用在本地使用 `127.0.0.1`；当托管环境提供 `PORT` 时会接受外部连接。请提供 HTTPS，并在使用反向代理时保留 `Host` 和 `X-Forwarded-Proto` 请求头。切勿通过未加密的 HTTP 发布需要输入 SID/REMID 的面板。
+
+### Bonto
+
+将仓库连接到 Bonto 或直接上传文件即可。Bonto 会检测 `package.json`，自动运行 `npm install`，然后运行 `npm start`。请勿上传 `node_modules`；本项目没有外部运行时依赖，因此该目录可能根本不会创建。应用会自动使用 Bonto 分配的 `PORT`。详情请参阅 [Bonto Node.js 指南](https://bonto.dev/hosting/nodejs)。
 
 ## 免责声明
 

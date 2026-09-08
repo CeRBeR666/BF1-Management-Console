@@ -60,7 +60,11 @@ The target BF1 server `GAME_ID` is defined near the top of `index.js`. Change it
 
 ## Publishing on the internet
 
-The application listens on `127.0.0.1` only. Put it behind an HTTPS reverse proxy and preserve the `Host` and `X-Forwarded-Proto` headers. Never publish a deployment that accepts SID/REMID over unencrypted HTTP.
+The application uses `127.0.0.1` locally and accepts external connections when the hosting environment supplies `PORT`. Provide HTTPS and preserve the `Host` and `X-Forwarded-Proto` headers when using a reverse proxy. Never publish a deployment that accepts SID/REMID over unencrypted HTTP.
+
+### Bonto
+
+Connect the repository to Bonto or upload the files. Bonto detects `package.json` and runs `npm install` followed by `npm start` automatically. Do not upload `node_modules`; this project has no external runtime packages, so the folder may not be created at all. The application automatically uses the `PORT` assigned by Bonto. See the [Bonto Node.js guide](https://bonto.dev/hosting/nodejs) for details.
 
 ## Disclaimer
 

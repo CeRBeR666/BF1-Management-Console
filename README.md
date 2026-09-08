@@ -60,7 +60,11 @@ Yönetilecek BF1 sunucusunun `GAME_ID` değeri `index.js` dosyasının başında
 
 ## İnternette yayınlama
 
-Uygulama yalnızca `127.0.0.1` üzerinde dinler. İnternette kullanırken önüne HTTPS sağlayan bir reverse proxy koyun; `Host` ve `X-Forwarded-Proto` başlıklarını koruyun. SID/REMID kullanılan bir kurulumu şifresiz HTTP üzerinden yayınlamayın.
+Uygulama yerelde `127.0.0.1` üzerinde çalışır; barındırma ortamı `PORT` verdiğinde dış bağlantıları kabul eder. İnternette kullanırken HTTPS sağlayın ve reverse proxy kullanıyorsanız `Host` ile `X-Forwarded-Proto` başlıklarını koruyun. SID/REMID kullanılan bir kurulumu şifresiz HTTP üzerinden yayınlamayın.
+
+### Bonto
+
+Depoyu Bonto'ya bağlamanız veya dosyaları yüklemeniz yeterlidir. Bonto `package.json` dosyasını görerek `npm install` ve `npm start` komutlarını otomatik çalıştırır. `node_modules` klasörünü yüklemeyin; bu projede harici çalışma zamanı paketi olmadığı için klasörün oluşmaması normaldir. Uygulama Bonto'nun verdiği `PORT` değerini otomatik kullanır. Ayrıntılar için [Bonto Node.js rehberine](https://bonto.dev/hosting/nodejs) bakın.
 
 ## Uyarı
 

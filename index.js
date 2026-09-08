@@ -5,7 +5,8 @@ import { pathToFileURL } from 'node:url';
 
 const GAME = 'tunguska';
 const GAME_ID = '11447538180825';
-const PORT = 8787;
+const PORT = Number(process.env.PORT) || 8787;
+const HOST = process.env.PORT ? '0.0.0.0' : '127.0.0.1';
 const gateway = 'https://sparta-gw.battlelog.com/jsonrpc/pc/api';
 const SESSION_COOKIE = 'cerser_session';
 const SESSION_TTL = 12 * 60 * 60 * 1000;
@@ -241,7 +242,7 @@ export const server = createServer(async (req, res) => {
 });
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
-  server.listen(PORT, '127.0.0.1', () => {
-    console.log(`BF1 yönetim ekranı: http://127.0.0.1:${PORT}`);
+  server.listen(PORT, HOST, () => {
+    console.log(`BF1 yönetim ekranı: http://${HOST}:${PORT}`);
   });
 }
