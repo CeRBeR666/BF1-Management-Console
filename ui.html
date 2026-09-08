@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>BF1 Yönetim Paneli</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; background:#0d1117; color:#e6edf3 }
+    * { box-sizing:border-box }
+    body { margin:0; background:radial-gradient(circle at top,#182334,#0d1117 55%); min-height:100vh }
+    main { width:min(1050px,92%); margin:auto; padding:42px 0 70px }
+    header { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:24px }
+    .header-actions { display:flex; gap:9px }
+    .header-actions select { width:auto }
+    h1 { margin:0; font-size:clamp(28px,5vw,48px); letter-spacing:-1.5px }
+    h1 span { color:#ffb347 }
+    .muted { color:#8b949e; margin:7px 0 0 }
+    button,input,select,textarea { font:inherit }
+    button { border:0; border-radius:9px; padding:11px 16px; background:#ff9f1c; color:#15100a; font-weight:750; cursor:pointer }
+    button:hover { filter:brightness(1.08) }
+    button:disabled { opacity:.45; cursor:wait }
+    .secondary { background:#263140; color:#e6edf3 }
+    .danger { background:#da3633; color:white }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px }
+    .card { background:rgba(22,27,34,.94); border:1px solid #30363d; border-radius:14px; padding:20px; box-shadow:0 18px 45px #0004 }
+    .wide { grid-column:1/-1 }
+    h2 { font-size:17px; margin:0 0 16px }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px }
+    .stat { background:#0d1117; border-radius:10px; padding:14px }
+    .stat b { display:block; font-size:20px; margin-top:4px; overflow-wrap:anywhere }
+    .label { color:#8b949e; font-size:12px; text-transform:uppercase; letter-spacing:.08em }
+    .form { display:grid; grid-template-columns:1fr 1fr; gap:12px }
+    input,select,textarea { width:100%; padding:11px 12px; border:1px solid #3d4652; border-radius:9px; background:#0d1117; color:#e6edf3 }
+    textarea { min-height:110px; resize:vertical; font-family:ui-monospace,monospace }
+    .stack { display:grid; gap:10px }
+    details { margin-top:14px }
+    summary { cursor:pointer; color:#ffb347; font-weight:700 }
+    .buttons { display:flex; flex-wrap:wrap; gap:9px; margin-top:12px }
+    .teams { display:grid; grid-template-columns:1fr 1fr; gap:14px }
+    .team { display:grid; gap:8px; align-content:start }
+    .player { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px; background:#0d1117; border-radius:9px }
+    .player small { color:#8b949e }
+    .player .buttons { margin:0; flex-wrap:nowrap }
+    .player button { padding:7px 10px; font-size:12px }
+    .maps { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:9px }
+    .map-choice { text-align:left; background:#263140; color:#e6edf3 }
+    .map-choice small { display:block; margin-top:4px; color:#9ca8b5; font-weight:500 }
+    .map-choice.active { outline:2px solid #ff9f1c; background:#3a2b18 }
+    pre { white-space:pre-wrap; overflow-wrap:anywhere; margin:0; max-height:280px; overflow:auto; color:#bac4cf; font:13px/1.55 ui-monospace,monospace }
+    .toast { position:fixed; right:22px; bottom:22px; z-index:10; max-width:min(420px,calc(100% - 44px)); padding:13px 16px; border:1px solid #388bfd; border-radius:10px; background:#152238; color:#e6edf3; box-shadow:0 16px 45px #0009; opacity:0; transform:translateY(12px); pointer-events:none; transition:.2s ease }
+    .toast.show { opacity:1; transform:none }
+    .toast.success { border-color:#3fb950; background:#112b1b }
+    .toast.error { border-color:#f85149; background:#351518 }
+    dialog { width:min(520px,calc(100% - 32px)); padding:24px; border:1px solid #3d4652; border-radius:14px; background:#161b22; color:#e6edf3; box-shadow:0 24px 80px #000c }
+    dialog::backdrop { background:#080b10dd; backdrop-filter:blur(5px) }
+    dialog h2 { font-size:22px }
+    dialog .notice { padding:12px; border-left:3px solid #ffb347; background:#241d14; color:#d7c7ad; line-height:1.5 }
+    dialog label { display:grid; gap:6px }
+    @media (max-width:700px) { .grid,.form,.stats,.teams { grid-template-columns:1fr } header { align-items:start; flex-direction:column } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div><h1><span>CeRSER BF1 </span><span data-i18n="management">Yönetim</span></h1><p class="muted" data-i18n="subtitle">BF1 sunucu yönetim paneli</p></div>
+    <div class="header-actions">
+      <select id="language" aria-label="Language"><option value="tr">Türkçe</option><option value="en">English</option><option value="ru">Русский</option><option value="zh">中文</option></select>
+      <button id="refresh" class="secondary" data-i18n="refresh">Yenile</button>
+    </div>
+  </header>
+  <section class="grid">
+    <article class="card wide">
+      <h2 data-i18n="server">Sunucu</h2>
+      <div class="stats">
+        <div class="stat"><span class="label" data-i18n="name">Ad</span><b id="name">—</b></div>
+        <div class="stat"><span class="label" data-i18n="owner">Sahip</span><b id="owner">—</b></div>
+        <div class="stat"><span class="label" data-i18n="map">Harita</span><b id="map">—</b></div>
+      </div>
+    </article>
+    <article class="card wide">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <h2 style="margin:0" data-i18n="livePlayers">Canlı oyuncular</h2>
+        <button id="refreshPlayers" class="secondary" data-i18n="refreshPlayers">Oyuncuları yenile</button>
+      </div>
+      <p id="playerMessage" class="muted" data-i18n="loadingPlayers">Oyuncular yükleniyor…</p>
+      <div class="teams" id="teams"></div>
+    </article>
+    <article class="card">
+      <h2 data-i18n="playerManagement">Oyuncu yönetimi</h2>
+      <div class="form">
+        <input id="personaId" inputmode="numeric" placeholder="Persona ID" data-i18n-placeholder="personaId">
+        <select id="reason">
+          <option value="RULEVIOLATION" data-i18n="reasonRule">Kural ihlali</option>
+          <option value="OFFENSIVEBEHAVIOR" data-i18n="reasonOffensive">Uygunsuz davranış</option>
+          <option value="LATENCY" data-i18n="reasonLatency">Yüksek gecikme</option>
+          <option value="GENERAL" data-i18n="reasonGeneral">Genel</option>
+        </select>
+      </div>
+      <div class="buttons">
+        <button data-action="kick" data-i18n="kick">Oyuncuyu at</button>
+        <button data-action="ban" class="danger" data-i18n="ban">Yasakla</button>
+        <button data-action="unban" class="secondary" data-i18n="unban">Yasağı kaldır</button>
+        <button data-action="vip-add" data-i18n="vipAdd">VIP ekle</button>
+        <button data-action="vip-remove" class="secondary" data-i18n="vipRemove">VIP çıkar</button>
+        <button data-action="admin-add" data-i18n="adminAdd">Yönetici ekle</button>
+        <button data-action="admin-remove" class="secondary" data-i18n="adminRemove">Yöneticiyi çıkar</button>
+      </div>
+      <div class="form" style="margin-top:12px">
+        <select id="teamId"><option value="1" data-i18n="team1">Takım 1</option><option value="2" data-i18n="team2">Takım 2</option></select>
+        <button data-action="move" data-i18n="move">Takıma taşı</button>
+      </div>
+    </article>
+    <article class="card"><h2 data-i18n="admins">Yöneticiler</h2><pre id="admins">—</pre></article>
+    <article class="card"><h2 data-i18n="vipList">VIP listesi</h2><pre id="vips">—</pre></article>
+    <article class="card"><h2 data-i18n="bannedList">Yasaklılar</h2><pre id="bans">—</pre></article>
+    <article class="card wide">
+      <h2 data-i18n="changeMap">Harita değiştir</h2>
+      <p class="muted" data-i18n="changeMapHint">Geçmek istediğin haritaya tıkla. Tur hemen değişeceği için önce onay sorulur.</p>
+      <input id="levelIndex" type="hidden">
+      <div id="rotations" class="maps"></div>
+    </article>
+    <article class="card wide">
+      <h2 data-i18n="serverSettings">Sunucu ayarları</h2>
+      <div class="stack">
+        <input id="serverName" placeholder="Sunucu adı" data-i18n-placeholder="serverName">
+        <textarea id="description" placeholder="Açıklama" data-i18n-placeholder="description"></textarea>
+        <input id="serverMessage" placeholder="Sunucu mesajı" data-i18n-placeholder="serverMessage">
+        <input id="password" type="password" placeholder="Şifre" data-i18n-placeholder="password">
+        <input id="bannerUrl" type="url" placeholder="Banner adresi" data-i18n-placeholder="bannerUrl">
+      </div>
+      <details>
+        <summary data-i18n="advanced">Gelişmiş ayarlar ve harita rotasyonu</summary>
+        <p class="muted" data-i18n="advancedHint">Bu alanlar mevcut yapılandırmayı koruyarak düzenlenir.</p>
+        <label class="label" for="mapsJson" data-i18n="maps">Haritalar</label>
+        <textarea id="mapsJson"></textarea>
+        <label class="label" for="customGameSettings" data-i18n="gameSettings">Oyun ayarları</label>
+        <textarea id="customGameSettings"></textarea>
+      </details>
+      <div class="buttons"><button data-action="update" data-i18n="saveSettings">Sunucu ayarlarını kaydet</button></div>
+    </article>
+  </section>
+</main>
+<div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<dialog id="authDialog">
+  <form id="authForm" class="stack">
+    <h2 data-i18n="authTitle">EA bağlantısı gerekli</h2>
+    <p class="muted" data-i18n="authIntro">Sunucuya bağlanmak için EA hesabındaki oturum değerini girin. EA şifrenizi buraya yazmayın.</p>
+    <label><span class="label">SID</span><input id="eaSid" type="password" autocomplete="off" required></label>
+    <label><span class="label" data-i18n="remid">REMID (isteğe bağlı)</span><input id="eaRemid" type="password" autocomplete="off"></label>
+    <p class="notice" data-i18n="authNotice">SID ve REMID, EA hesabına erişim sağlayabilen hassas bilgilerdir. Yalnızca güvendiğiniz bir panelde paylaşın. Bilgiler diske yazılmaz; bu sunucunun belleğinde 12 saat tutulur. Devam etmek kendi sorumluluğunuzdadır.</p>
+    <label style="display:flex;grid-template-columns:auto 1fr;align-items:start"><input id="eaConsent" type="checkbox" required style="width:auto;margin-top:4px"><span data-i18n="authConsent">Bu bilgiyi kendi isteğimle gönderdiğimi ve riski anladığımı kabul ediyorum.</span></label>
+    <button id="authSubmit" type="submit" data-i18n="connect">Bağlan ve panele geç</button>
+  </form>
+</dialog>
+<script>
+  const translations = {
+    tr: {
+      management:'Yönetim', subtitle:'BF1 sunucu yönetim paneli', refresh:'Yenile', server:'Sunucu', name:'Ad', owner:'Sahip', map:'Harita',
+      livePlayers:'Canlı oyuncular', refreshPlayers:'Oyuncuları yenile', loadingPlayers:'Oyuncular yükleniyor…', playerManagement:'Oyuncu yönetimi', personaId:'Persona ID',
+      reasonRule:'Kural ihlali', reasonOffensive:'Uygunsuz davranış', reasonLatency:'Yüksek gecikme', reasonGeneral:'Genel', kick:'Oyuncuyu at', ban:'Yasakla', unban:'Yasağı kaldır',
+      vipAdd:'VIP ekle', vipRemove:'VIP çıkar', adminAdd:'Yönetici ekle', adminRemove:'Yöneticiyi çıkar', team1:'Takım 1', team2:'Takım 2', move:'Takıma taşı',
+      admins:'Yöneticiler', vipList:'VIP listesi', bannedList:'Yasaklılar', changeMap:'Harita değiştir', changeMapHint:'Geçmek istediğin haritaya tıkla. Tur hemen değişeceği için önce onay sorulur.',
+      serverSettings:'Sunucu ayarları', serverName:'Sunucu adı', description:'Açıklama', serverMessage:'Sunucu mesajı', password:'Şifre', bannerUrl:'Banner adresi',
+      advanced:'Gelişmiş ayarlar ve harita rotasyonu', advancedHint:'Bu alanlar mevcut yapılandırmayı koruyarak düzenlenir.', maps:'Haritalar', gameSettings:'Oyun ayarları', saveSettings:'Sunucu ayarlarını kaydet',
+      authTitle:'EA bağlantısı gerekli', authIntro:'Sunucuya bağlanmak için EA hesabındaki oturum değerini girin. EA şifrenizi buraya yazmayın.', remid:'REMID (isteğe bağlı)',
+      authNotice:'SID ve REMID, EA hesabına erişim sağlayabilen hassas bilgilerdir. Yalnızca güvendiğiniz bir panelde paylaşın. Bilgiler diske yazılmaz; bu sunucunun belleğinde 12 saat tutulur. Devam etmek kendi sorumluluğunuzdadır.',
+      authConsent:'Bu bilgiyi kendi isteğimle gönderdiğimi ve riski anladığımı kabul ediyorum.', connect:'Bağlan ve panele geç', empty:'Boş', unknown:'Bilinmiyor', noId:'ID yok', rotationEmpty:'Rotasyon boş.',
+      loadingServer:'Sunucu bilgileri yükleniyor…', connectionReady:'Bağlantı hazır.', applying:'İşlem uygulanıyor…', applied:'İşlem başarıyla uygulandı.',
+      playerHint:'Bir oyuncuya tıklayabilir veya yanındaki işlemi kullanabilirsin.', noPlayers:'Sunucuda oyuncu bulunamadı.', team:'Takım {number}', rankMeta:'Rütbe {rank} · {latency} ms · ID {id}',
+      quickKick:'At', quickBan:'Ban', quickVip:'VIP', checkingAuth:'EA bağlantısı kontrol ediliyor…', authConnected:'EA bağlantısı kuruldu.',
+      confirm:'Sunucuda {action} istediğine emin misin?', actionKick:'oyuncuyu atmak', actionBan:'oyuncuyu yasaklamak', actionUnban:'yasağı kaldırmak', actionVipAdd:'VIP eklemek', actionVipRemove:'VIP çıkarmak',
+      actionAdminAdd:'yönetici eklemek', actionAdminRemove:'yöneticiyi çıkarmak', actionMove:'oyuncuyu diğer takıma taşımak', actionMap:'haritayı “{map}” olarak değiştirmek', actionUpdate:'sunucu ayarlarını değiştirmek',
+      authRequired:'EA bağlantısı gerekli.', invalidSession:'EA oturumu geçersiz veya süresi dolmuş. SID değerini yeniden girin.', consentRequired:'Devam etmek için bilgilendirmeyi kabul edin.',
+      invalidSid:'Geçerli bir EA SID değeri girin.', invalidRemid:'REMID değeri geçersiz.', badOrigin:'Geçersiz istek kaynağı.', serverRestart:'EA sunucuyu şu anda yeniden başlatamıyor. Aktif tur başladıktan sonra haritayı tekrar seçin. (ServerNotRestartableException)',
+      invalidPersona:'Geçerli bir persona ID girin.', invalidTeam:'Takım 1 veya 2 olmalı.', invalidMap:'Geçerli bir harita sıra numarası girin.', invalidRotation:'Harita rotasyonu geçersiz.', invalidAction:'Geçersiz işlem.'
+    },
+    en: {
+      management:'Management', subtitle:'BF1 server management panel', refresh:'Refresh', server:'Server', name:'Name', owner:'Owner', map:'Map',
+      livePlayers:'Live players', refreshPlayers:'Refresh players', loadingPlayers:'Loading players…', playerManagement:'Player management', personaId:'Persona ID',
+      reasonRule:'Rule violation', reasonOffensive:'Offensive behavior', reasonLatency:'High latency', reasonGeneral:'General', kick:'Kick player', ban:'Ban', unban:'Unban',
+      vipAdd:'Add VIP', vipRemove:'Remove VIP', adminAdd:'Add admin', adminRemove:'Remove admin', team1:'Team 1', team2:'Team 2', move:'Move to team',
+      admins:'Administrators', vipList:'VIP list', bannedList:'Banned players', changeMap:'Change map', changeMapHint:'Click the map you want to play. You will be asked to confirm because the round changes immediately.',
+      serverSettings:'Server settings', serverName:'Server name', description:'Description', serverMessage:'Server message', password:'Password', bannerUrl:'Banner URL',
+      advanced:'Advanced settings and map rotation', advancedHint:'These fields edit the existing configuration.', maps:'Maps', gameSettings:'Game settings', saveSettings:'Save server settings',
+      authTitle:'EA connection required', authIntro:'Enter your EA account session value to connect to the server. Do not enter your EA password here.', remid:'REMID (optional)',
+      authNotice:'SID and REMID are sensitive values that can provide access to your EA account. Share them only with a panel you trust. They are not written to disk and remain in this server’s memory for 12 hours. You proceed at your own risk.',
+      authConsent:'I confirm that I am providing this information voluntarily and understand the risk.', connect:'Connect and open panel', empty:'Empty', unknown:'Unknown', noId:'No ID', rotationEmpty:'Rotation is empty.',
+      loadingServer:'Loading server information…', connectionReady:'Connection ready.', applying:'Applying action…', applied:'Action completed successfully.',
+      playerHint:'Click a player or use an action beside their name.', noPlayers:'No players found on the server.', team:'Team {number}', rankMeta:'Rank {rank} · {latency} ms · ID {id}',
+      quickKick:'Kick', quickBan:'Ban', quickVip:'VIP', checkingAuth:'Checking EA connection…', authConnected:'EA connection established.',
+      confirm:'Are you sure you want to {action} on the server?', actionKick:'kick the player', actionBan:'ban the player', actionUnban:'remove the ban', actionVipAdd:'add the player as VIP', actionVipRemove:'remove the player from VIP',
+      actionAdminAdd:'add an administrator', actionAdminRemove:'remove the administrator', actionMove:'move the player to the other team', actionMap:'change the map to “{map}”', actionUpdate:'change the server settings',
+      authRequired:'EA connection required.', invalidSession:'The EA session is invalid or expired. Enter the SID again.', consentRequired:'Accept the notice to continue.',
+      invalidSid:'Enter a valid EA SID.', invalidRemid:'The REMID is invalid.', badOrigin:'Invalid request origin.', serverRestart:'EA cannot restart the server right now. Select the map again after an active round starts. (ServerNotRestartableException)',
+      invalidPersona:'Enter a valid persona ID.', invalidTeam:'Team must be 1 or 2.', invalidMap:'Enter a valid map rotation index.', invalidRotation:'The map rotation is invalid.', invalidAction:'Invalid action.'
+    },
+    ru: {
+      management:'Управление', subtitle:'Панель управления сервером BF1', refresh:'Обновить', server:'Сервер', name:'Название', owner:'Владелец', map:'Карта',
+      livePlayers:'Игроки онлайн', refreshPlayers:'Обновить игроков', loadingPlayers:'Загрузка игроков…', playerManagement:'Управление игроками', personaId:'ID персоны',
+      reasonRule:'Нарушение правил', reasonOffensive:'Неприемлемое поведение', reasonLatency:'Высокая задержка', reasonGeneral:'Общее', kick:'Исключить игрока', ban:'Заблокировать', unban:'Снять блокировку',
+      vipAdd:'Добавить VIP', vipRemove:'Удалить VIP', adminAdd:'Добавить администратора', adminRemove:'Удалить администратора', team1:'Команда 1', team2:'Команда 2', move:'Переместить в команду',
+      admins:'Администраторы', vipList:'Список VIP', bannedList:'Заблокированные', changeMap:'Сменить карту', changeMapHint:'Нажмите нужную карту. Потребуется подтверждение, поскольку раунд сменится сразу.',
+      serverSettings:'Настройки сервера', serverName:'Название сервера', description:'Описание', serverMessage:'Сообщение сервера', password:'Пароль', bannerUrl:'Адрес баннера',
+      advanced:'Расширенные настройки и ротация карт', advancedHint:'Эти поля изменяют текущую конфигурацию.', maps:'Карты', gameSettings:'Настройки игры', saveSettings:'Сохранить настройки сервера',
+      authTitle:'Требуется подключение EA', authIntro:'Введите значение сессии EA для подключения к серверу. Не вводите здесь пароль EA.', remid:'REMID (необязательно)',
+      authNotice:'SID и REMID — конфиденциальные данные, которые могут предоставить доступ к вашей учётной записи EA. Передавайте их только доверенной панели. Они не записываются на диск и хранятся в памяти сервера 12 часов. Вы продолжаете на свой страх и риск.',
+      authConsent:'Я добровольно передаю эти данные и понимаю риск.', connect:'Подключиться и открыть панель', empty:'Пусто', unknown:'Неизвестно', noId:'Нет ID', rotationEmpty:'Ротация пуста.',
+      loadingServer:'Загрузка данных сервера…', connectionReady:'Подключение готово.', applying:'Выполнение операции…', applied:'Операция выполнена.',
+      playerHint:'Нажмите игрока или выберите действие рядом с его именем.', noPlayers:'На сервере нет игроков.', team:'Команда {number}', rankMeta:'Ранг {rank} · {latency} мс · ID {id}',
+      quickKick:'Исключить', quickBan:'Бан', quickVip:'VIP', checkingAuth:'Проверка подключения EA…', authConnected:'Подключение EA установлено.',
+      confirm:'Вы уверены, что хотите выполнить действие «{action}» на сервере?', actionKick:'исключить игрока', actionBan:'заблокировать игрока', actionUnban:'снять блокировку', actionVipAdd:'добавить VIP', actionVipRemove:'удалить VIP',
+      actionAdminAdd:'добавить администратора', actionAdminRemove:'удалить администратора', actionMove:'переместить игрока в другую команду', actionMap:'сменить карту на «{map}»', actionUpdate:'изменить настройки сервера',
+      authRequired:'Требуется подключение EA.', invalidSession:'Сессия EA недействительна или истекла. Введите SID ещё раз.', consentRequired:'Примите уведомление, чтобы продолжить.',
+      invalidSid:'Введите действительный EA SID.', invalidRemid:'Недействительный REMID.', badOrigin:'Недопустимый источник запроса.', serverRestart:'EA сейчас не может перезапустить сервер. Выберите карту снова после начала активного раунда. (ServerNotRestartableException)',
+      invalidPersona:'Введите действительный ID персоны.', invalidTeam:'Номер команды должен быть 1 или 2.', invalidMap:'Введите действительный номер карты в ротации.', invalidRotation:'Недействительная ротация карт.', invalidAction:'Недопустимое действие.'
+    },
+    zh: {
+      management:'管理', subtitle:'BF1 服务器管理面板', refresh:'刷新', server:'服务器', name:'名称', owner:'所有者', map:'地图',
+      livePlayers:'在线玩家', refreshPlayers:'刷新玩家', loadingPlayers:'正在加载玩家…', playerManagement:'玩家管理', personaId:'角色 ID',
+      reasonRule:'违反规则', reasonOffensive:'不当行为', reasonLatency:'延迟过高', reasonGeneral:'其他', kick:'踢出玩家', ban:'封禁', unban:'解除封禁',
+      vipAdd:'添加 VIP', vipRemove:'移除 VIP', adminAdd:'添加管理员', adminRemove:'移除管理员', team1:'队伍 1', team2:'队伍 2', move:'移动到队伍',
+      admins:'管理员', vipList:'VIP 列表', bannedList:'封禁列表', changeMap:'切换地图', changeMapHint:'点击想要游玩的地图。由于回合会立即切换，系统将要求确认。',
+      serverSettings:'服务器设置', serverName:'服务器名称', description:'描述', serverMessage:'服务器消息', password:'密码', bannerUrl:'横幅地址',
+      advanced:'高级设置和地图轮换', advancedHint:'这些字段用于修改当前配置。', maps:'地图', gameSettings:'游戏设置', saveSettings:'保存服务器设置',
+      authTitle:'需要连接 EA', authIntro:'请输入 EA 账户的会话值以连接服务器。请勿在此输入 EA 密码。', remid:'REMID（可选）',
+      authNotice:'SID 和 REMID 是可能提供 EA 账户访问权限的敏感信息。请仅在你信任的面板中分享。信息不会写入磁盘，仅在此服务器内存中保存 12 小时。继续操作的风险由你自行承担。',
+      authConsent:'我确认自愿提供这些信息并了解相关风险。', connect:'连接并进入面板', empty:'空', unknown:'未知', noId:'无 ID', rotationEmpty:'地图轮换为空。',
+      loadingServer:'正在加载服务器信息…', connectionReady:'连接已就绪。', applying:'正在执行操作…', applied:'操作成功完成。',
+      playerHint:'点击玩家，或使用其姓名旁边的操作按钮。', noPlayers:'服务器中没有玩家。', team:'队伍 {number}', rankMeta:'等级 {rank} · {latency} 毫秒 · ID {id}',
+      quickKick:'踢出', quickBan:'封禁', quickVip:'VIP', checkingAuth:'正在检查 EA 连接…', authConnected:'EA 连接成功。',
+      confirm:'确定要在服务器上执行“{action}”吗？', actionKick:'踢出玩家', actionBan:'封禁玩家', actionUnban:'解除封禁', actionVipAdd:'添加 VIP', actionVipRemove:'移除 VIP',
+      actionAdminAdd:'添加管理员', actionAdminRemove:'移除管理员', actionMove:'将玩家移动到另一队', actionMap:'将地图切换为“{map}”', actionUpdate:'修改服务器设置',
+      authRequired:'需要连接 EA。', invalidSession:'EA 会话无效或已过期。请重新输入 SID。', consentRequired:'请接受提示后继续。',
+      invalidSid:'请输入有效的 EA SID。', invalidRemid:'REMID 无效。', badOrigin:'请求来源无效。', serverRestart:'EA 目前无法重启服务器。请在有效回合开始后重新选择地图。(ServerNotRestartableException)',
+      invalidPersona:'请输入有效的角色 ID。', invalidTeam:'队伍必须是 1 或 2。', invalidMap:'请输入有效的地图轮换序号。', invalidRotation:'地图轮换无效。', invalidAction:'操作无效。'
+    }
+  };
+  const serverErrorKeys = {
+    'EA bağlantısı gerekli.':'authRequired',
+    'EA oturumu geçersiz veya süresi dolmuş. SID değerini yeniden girin.':'invalidSession',
+    'Devam etmek için bilgilendirmeyi kabul edin.':'consentRequired',
+    'Geçerli bir EA SID değeri girin.':'invalidSid',
+    'REMID değeri geçersiz.':'invalidRemid',
+    'Geçersiz istek kaynağı.':'badOrigin',
+    'EA sunucuyu şu anda yeniden başlatamıyor. Aktif tur başladıktan sonra haritayı tekrar seçin. (ServerNotRestartableException)':'serverRestart',
+    'Geçerli bir persona ID girin.':'invalidPersona',
+    'Takım 1 veya 2 olmalı.':'invalidTeam',
+    'Geçerli bir harita sıra numarası girin.':'invalidMap',
+    'Harita rotasyonu geçersiz.':'invalidRotation',
+    'Geçersiz işlem.':'invalidAction'
+  };
+  const supportedLanguages = ['tr', 'en', 'ru', 'zh'];
+  let language = localStorage.getItem('language') || navigator.language.slice(0, 2).toLowerCase();
+  if (!supportedLanguages.includes(language)) language = 'en';
+  const t = (key, values = {}) => (translations[language][key] ?? translations.en[key] ?? key)
+    .replace(/\{(\w+)\}/g, (_, name) => values[name] ?? `{${name}}`);
+  const localizeError = text => t(serverErrorKeys[text] || text);
+  function applyLanguage() {
+    document.documentElement.lang = language;
+    document.title = `CeRSER BF1 ${t('management')}`;
+    $('language').value = language;
+    document.querySelectorAll('[data-i18n]').forEach(element => { element.textContent = t(element.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => { element.placeholder = t(element.dataset.i18nPlaceholder); });
+  }
+  const $ = id => document.getElementById(id);
+  let toastTimer;
+  const message = (text, type = 'info') => {
+    const toast = $('toast');
+    clearTimeout(toastTimer);
+    toast.textContent = text;
+    toast.className = `toast ${type} show`;
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+  };
+  const showPeople = (id, value) => $(id).textContent = value.length
+    ? value.map(x => `${x.displayName || x.name || t('unknown')} · ${x.personaId || t('noId')}`).join('\n')
+    : t('empty');
+
+  async function responseJson(res) {
+    const data = await res.json();
+    if (!res.ok) {
+      const error = new Error(localizeError(data.error || `HTTP ${res.status}`));
+      error.status = res.status;
+      throw error;
+    }
+    return data;
+  }
+
+  function requireLogin(error) {
+    if (error.status !== 401) return false;
+    if (!$('authDialog').open) $('authDialog').showModal();
+    message(error.message, 'error');
+    return true;
+  }
+
+  async function refresh() {
+    $('refresh').disabled = true;
+    message(t('loadingServer'));
+    try {
+      const res = await fetch('/api/status');
+      const data = await responseJson(res);
+      $('name').textContent = data.serverInfo.name || data.server.name || 'CeRSER All Welcome';
+      $('owner').textContent = data.owner.displayName || data.owner.name || data.owner.personaId || t('unknown');
+      $('map').textContent = data.serverInfo.mapNamePretty || data.serverInfo.mapName || t('unknown');
+      showPeople('admins', data.adminList);
+      showPeople('vips', data.vipList);
+      showPeople('bans', data.bannedList);
+      const rotation = data.serverInfo.rotation || [];
+      $('rotations').replaceChildren();
+      for (const [index, item] of rotation.entries()) {
+        const button = document.createElement('button');
+        button.className = 'map-choice' + (item.mapPrettyName === data.serverInfo.mapNamePretty ? ' active' : '');
+        button.dataset.mapName = item.mapPrettyName;
+        button.textContent = item.mapPrettyName;
+        const mode = document.createElement('small');
+        mode.textContent = item.modePrettyName;
+        button.append(mode);
+        button.addEventListener('click', () => {
+          $('levelIndex').value = index;
+          runAction(button, 'map');
+        });
+        $('rotations').append(button);
+      }
+      if (!rotation.length) $('rotations').textContent = t('rotationEmpty');
+      $('serverName').value = data.serverSettings.name || '';
+      $('description').value = data.serverSettings.description || '';
+      $('serverMessage').value = data.serverSettings.message || '';
+      $('password').value = data.serverSettings.password || '';
+      $('bannerUrl').value = data.serverSettings.bannerUrl || '';
+      $('mapsJson').value = JSON.stringify(data.mapRotations[0]?.maps || [], null, 2);
+      $('customGameSettings').value = data.serverSettings.customGameSettings || '{}';
+      message(t('connectionReady'), 'success');
+    } catch (error) {
+      if (!requireLogin(error)) message(error.message, 'error');
+    } finally {
+      $('refresh').disabled = false;
+    }
+  }
+
+  async function runAction(button, action, selectedPersonaId = '') {
+    const labels = { kick:'actionKick', ban:'actionBan', unban:'actionUnban', 'vip-add':'actionVipAdd',
+      'vip-remove':'actionVipRemove', 'admin-add':'actionAdminAdd', 'admin-remove':'actionAdminRemove',
+      move:'actionMove', update:'actionUpdate' };
+    const label = action === 'map' && button.dataset.mapName
+      ? t('actionMap', { map:button.dataset.mapName })
+      : labels[action] ? t(labels[action]) : '';
+    if (label && !confirm(t('confirm', { action:label }))) return;
+    button.disabled = true;
+    message(t('applying'));
+    try {
+      const res = await fetch('/api/action', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body:JSON.stringify({
+          action,
+          personaId:selectedPersonaId || $('personaId').value,
+          reason:$('reason').value,
+          levelIndex:$('levelIndex').value,
+          teamId:$('teamId').value,
+          name:$('serverName').value,
+          description:$('description').value,
+          message:$('serverMessage').value,
+          password:$('password').value,
+          bannerUrl:$('bannerUrl').value,
+          maps:$('mapsJson').value,
+          customGameSettings:$('customGameSettings').value
+        })
+      });
+      await responseJson(res);
+      await Promise.all([refresh(), loadPlayers()]);
+      message(t('applied'), 'success');
+    } catch (error) {
+      if (!requireLogin(error)) message(error.message, 'error');
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  document.querySelectorAll('[data-action]').forEach(button =>
+    button.addEventListener('click', () => runAction(button, button.dataset.action)));
+
+  async function loadPlayers() {
+    $('refreshPlayers').disabled = true;
+    $('playerMessage').textContent = t('loadingPlayers');
+    $('teams').replaceChildren();
+    try {
+      const res = await fetch('/api/players');
+      const data = await responseJson(res);
+      const teams = data.teams || [];
+      for (const [teamIndex, team] of teams.entries()) {
+        const box = document.createElement('section');
+        box.className = 'team';
+        const title = document.createElement('h2');
+        title.textContent = `${team.name || t('team', { number:teamIndex + 1 })} · ${team.players?.length || 0}`;
+        box.append(title);
+        for (const player of team.players || []) {
+          const row = document.createElement('div');
+          row.className = 'player';
+          const info = document.createElement('div');
+          const name = document.createElement('b');
+          name.textContent = player.name;
+          const meta = document.createElement('small');
+          meta.textContent = t('rankMeta', { rank:player.rank ?? '?', latency:player.latency ?? '?', id:player.player_id });
+          info.append(name, document.createElement('br'), meta);
+          const actions = document.createElement('div');
+          actions.className = 'buttons';
+          for (const [action, label, style] of [
+            ['kick', t('quickKick'), 'secondary'], ['ban', t('quickBan'), 'danger'], ['vip-add', t('quickVip'), '']
+          ]) {
+            const button = document.createElement('button');
+            button.textContent = label;
+            button.className = style;
+            button.addEventListener('click', () => runAction(button, action, String(player.player_id)));
+            actions.append(button);
+          }
+          row.addEventListener('click', event => {
+            if (event.target.tagName === 'BUTTON') return;
+            $('personaId').value = player.player_id;
+            $('personaId').scrollIntoView({ behavior:'smooth', block:'center' });
+          });
+          row.append(info, actions);
+          box.append(row);
+        }
+        $('teams').append(box);
+      }
+      $('playerMessage').textContent = teams.some(team => team.players?.length)
+        ? t('playerHint')
+        : t('noPlayers');
+    } catch (error) {
+      $('playerMessage').textContent = error.message;
+      if (!requireLogin(error)) message(error.message, 'error');
+    } finally {
+      $('refreshPlayers').disabled = false;
+    }
+  }
+  $('refresh').addEventListener('click', refresh);
+  $('refreshPlayers').addEventListener('click', loadPlayers);
+  $('language').addEventListener('change', () => {
+    language = $('language').value;
+    localStorage.setItem('language', language);
+    applyLanguage();
+    if (!$('authDialog').open) Promise.all([refresh(), loadPlayers()]);
+  });
+  $('authDialog').addEventListener('cancel', event => event.preventDefault());
+  $('authForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    $('authSubmit').disabled = true;
+    message(t('checkingAuth'));
+    try {
+      const res = await fetch('/api/auth', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body:JSON.stringify({ sid:$('eaSid').value, remid:$('eaRemid').value, consent:$('eaConsent').checked })
+      });
+      await responseJson(res);
+      $('authDialog').close();
+      $('eaSid').value = '';
+      $('eaRemid').value = '';
+      await Promise.all([refresh(), loadPlayers()]);
+      message(t('authConnected'), 'success');
+    } catch (error) {
+      message(error.message, 'error');
+    } finally {
+      $('authSubmit').disabled = false;
+    }
+  });
+  applyLanguage();
+  refresh();
+  loadPlayers();
+</script>
+</body>
+</html>
